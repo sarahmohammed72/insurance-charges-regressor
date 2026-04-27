@@ -1,13 +1,13 @@
 """
 Insurance Cost Prediction API
 ============================
-FastAPI app لخدمة الموديل المدرّب.
+FastAPI app to serve the trained model.
 
-التشغيل:
+Run:
     pip install fastapi uvicorn joblib pandas scikit-learn
     uvicorn app:app --reload
 
-الاستخدام:
+Usage:
     POST http://127.0.0.1:8000/predict
     {
         "age": 35, "sex": "male", "bmi": 28.5,
@@ -21,7 +21,7 @@ import joblib
 
 app = FastAPI(title="Insurance Cost Prediction API")
 
-# تحميل الموديل عند بدء التطبيق
+# Load model at startup
 model = joblib.load("insurance_model.pkl")
 
 
