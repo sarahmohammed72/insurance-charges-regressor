@@ -11,12 +11,12 @@ A regression model that predicts annual medical insurance charges based on demog
 ### 1. State the Goal
 
 **Current / non-ML solution:**
-Insurance companies currently use actuarial tables and manual rules created by insurance experts. For example: "multiply age × coefficient + add 50% if smoker". This approach is slow, requires constant review, and cannot capture complex interactions between factors.
+Insurance companies currently use actuarial tables and manual rules created by insurance experts. For example: "multiply age by coefficient + add 50% if smoker". This approach is slow, requires constant review, and cannot capture complex interactions between factors.
 
 **Application, Goal, Description:**
 - **Application:** An internal tool for medical insurance sales staff to provide instant pricing for new customers
-- **Goal:** Predict annual insurance charges with high accuracy (R² > 0.85) from 6 simple customer attributes
-- **Description:** Staff inputs customer data (age, sex, BMI, children, smoker status, region) → the model returns the suggested premium in dollars
+- **Goal:** Predict annual insurance charges with high accuracy (R-squared above 0.85) from 6 simple customer attributes
+- **Description:** Staff inputs customer data (age, sex, BMI, children, smoker status, region) and the model returns the suggested premium in dollars
 
 **ML Task:** Regression — predicting a continuous numerical value (charges in USD)
 
@@ -24,28 +24,28 @@ Insurance companies currently use actuarial tables and manual rules created by i
 
 | Factor | Manual Solution | ML Solution |
 |---|---|---|
-| **Difference** | Fixed tables and rules | Learns complex relationships (e.g., smoker × BMI interaction) |
-| **Cost** | High: experts + time | Low after training: predictions in milliseconds |
+| **Difference** | Fixed tables and rules | Learns complex relationships (e.g., smoker x BMI interaction) |
+| **Cost** | High: experts and time | Low after training: predictions in milliseconds |
 | **Maintenance** | Manual table updates yearly | Periodic retraining on new data |
 | **Expertise** | Requires actuarial expert | Requires ML engineer for training only |
 
-✅ **ML is justified here** because: (a) sufficient historical data is available, (b) feature relationships are complex and non-linear, (c) required accuracy benefits from ensemble models.
+ML is justified here because: (a) sufficient historical data is available, (b) feature relationships are complex and non-linear, (c) required accuracy benefits from ensemble models.
 
 ### 3. Does ART Apply to the Data?
 
-ART = **A**ccuracy, **R**eliability, **T**imeliness
+ART = Accuracy, Reliability, Timeliness
 
-- **Accuracy:** ✅ Data from real insurance records, features are verifiable (age, BMI from direct measurement)
-- **Reliability:** ✅ Trusted source (Kaggle / UCI repository), 1338 records with no missing values
-- **Timeliness:** ⚠️ Data is not real-time. If healthcare costs rise (medical inflation), the model needs retraining
+- **Accuracy:** Data from real insurance records, features are verifiable (age, BMI from direct measurement)
+- **Reliability:** Trusted source (Kaggle / UCI repository), 1338 records with no missing values
+- **Timeliness:** Data is not real-time. If healthcare costs rise (medical inflation), the model needs retraining
 
-### 4. Quantity & Quality of Data
+### 4. Quantity and Quality of Data
 
-- **Size:** 1,338 rows × 7 columns
+- **Size:** 1,338 rows by 7 columns
 - **Missing values:** 0 (100% clean data)
 - **Balance:** 79.5% non-smokers / 20.5% smokers — natural distribution
-- **Distribution:** Target variable `charges` is right-skewed — most values between 1,000 - 20,000 with a long tail extending to 60,000+
-- **Outliers:** Smokers with high BMI = naturally extreme points, not errors
+- **Distribution:** Target variable `charges` is right-skewed — most values between 1,000 and 20,000 with a long tail extending beyond 60,000
+- **Outliers:** Smokers with high BMI are naturally extreme points, not errors
 
 ### 5. Engineered Features
 
@@ -60,7 +60,7 @@ The original features are sufficient and don't require complex engineering, but 
 | `smoker` | One-Hot Encoding (drop_first) |
 | `region` | One-Hot Encoding (drop_first) |
 
-> Future improvement: Could add an interaction feature `smoker × bmi` since EDA revealed obese smokers pay several times more than others.
+Future improvement: Could add an interaction feature `smoker x bmi` since EDA revealed obese smokers pay several times more than others.
 
 ### 6. Most Predictive Features
 
@@ -68,9 +68,9 @@ From Gradient Boosting feature importance:
 
 | Rank | Feature | Importance |
 |---|---|---|
-| 🥇 1 | **smoker** | 77.3% |
-| 🥈 2 | bmi | 13.8% |
-| 🥉 3 | age | 8.4% |
+| 1 | **smoker** | 77.3% |
+| 2 | bmi | 13.8% |
+| 3 | age | 8.4% |
 | 4 | children | 0.4% |
 | 5 | region | ~0.1% |
 | 6 | sex | ~0.02% |
@@ -79,42 +79,42 @@ From Gradient Boosting feature importance:
 
 ![Feature Importance](feature_importance.png)
 
-### 7. Prediction & Decision
+### 7. Prediction and Decision
 
 - **Model output:** A decimal number in USD representing predicted annual charges
 - **Decision:** Staff uses the number as a baseline for pricing. They can multiply by a profit margin (e.g., 1.15) to produce the final offer
 - **Example:**
   ```
   Input: {age: 35, sex: male, bmi: 28.5, children: 2, smoker: no, region: southeast}
-  Output: $11,729.58 → Company offer: $13,489.02 (with 15% margin)
+  Output: $11,729.58 -> Company offer: $13,489.02 (with 15% margin)
   ```
 
 ### 8. Model Metrics
 
 Three models evaluated on a 20% test set (268 records):
 
-| Model | MAE ($) | RMSE ($) | R² |
+| Model | MAE ($) | RMSE ($) | R-squared |
 |---|---|---|---|
 | Linear Regression | 3,247.65 | 4,280.36 | 0.871 |
 | Random Forest | 2,031.26 | 2,590.71 | 0.953 |
-| **Gradient Boosting** ⭐ | **2,000.37** | **2,521.53** | **0.955** |
+| **Gradient Boosting** | **2,000.37** | **2,521.53** | **0.955** |
 
 **Gradient Boosting** is the winner:
-- **MAE ≈ $2,000** means the model is off by ~$2,000 on average
-- **R² = 0.955** means the model explains 95.5% of the variance in charges
+- **MAE around $2,000** means the model is off by about $2,000 on average
+- **R-squared of 0.955** means the model explains 95.5% of the variance in charges
 
 ### 9. Success / Failure Criteria
 
-✅ **Success criteria (all met):**
-- R² ≥ 0.85 → achieved (0.955)
-- MAE ≤ $3,000 → achieved ($2,000)
-- Prediction in under 1 second → achieved (milliseconds)
-- No missing values in production → achieved
+**Success criteria (all met):**
+- R-squared above 0.85: achieved (0.955)
+- MAE below $3,000: achieved ($2,000)
+- Prediction in under 1 second: achieved (milliseconds)
+- No missing values in production: achieved
 
-❌ **Failure criteria:**
-- R² < 0.7 means the model didn't learn relationships → need to revise features
-- MAE > $5,000 means errors are financially significant → not commercially viable
-- Negative predictions → critical error (no negative charges exist)
+**Failure criteria:**
+- R-squared below 0.7 means the model didn't learn relationships, need to revise features
+- MAE above $5,000 means errors are financially significant, not commercially viable
+- Negative predictions: critical error (no negative charges exist)
 
 ---
 
@@ -203,10 +203,10 @@ curl -X POST http://127.0.0.1:8000/predict \
 
 ## Summary
 
-- ✅ **Gradient Boosting** model with R² = 0.955 and MAE = $2,000
-- ✅ **Smoking** is the most important factor (77% of predictive power)
-- ✅ Model deployed via FastAPI for production use
-- 📈 Future improvements: add interaction features or use AutoGluon
+- Gradient Boosting model with R-squared of 0.955 and MAE of $2,000
+- Smoking is the most important factor (77% of predictive power)
+- Model deployed via FastAPI for production use
+- Future improvements: add interaction features or use AutoGluon
 
 ---
 
