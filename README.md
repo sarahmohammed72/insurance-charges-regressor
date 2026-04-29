@@ -1,6 +1,6 @@
 # Insurance Cost Prediction
 
-**Machine Learning Project — Applied AI Bootcamp**
+**Machine Learning Project - Applied AI Bootcamp**
 
 A regression model that predicts annual medical insurance charges based on demographic and health factors.
 
@@ -18,7 +18,7 @@ Insurance companies currently use actuarial tables and manual rules created by i
 - **Goal:** Predict annual insurance charges with high accuracy (R-squared above 0.85) from 6 simple customer attributes
 - **Description:** Staff inputs customer data (age, sex, BMI, children, smoker status, region) and the model returns the suggested premium in dollars
 
-**ML Task:** Regression — predicting a continuous numerical value (charges in USD)
+**ML Task:** Regression - predicting a continuous numerical value (charges in USD)
 
 ### 2. Clear Use Case for ML
 
@@ -36,15 +36,16 @@ ML is justified here because: (a) sufficient historical data is available, (b) f
 ART = Accuracy, Reliability, Timeliness
 
 - **Accuracy:** Data from real insurance records, features are verifiable (age, BMI from direct measurement)
-- **Reliability:** Trusted source (Kaggle / UCI repository), 1338 records with no missing values
-- **Timeliness:** Data is not real-time. If healthcare costs rise (medical inflation), the model needs retraining
+- **Reliability:** Trusted source (Kaggle Medical Cost Personal Dataset), 1338 records with no missing values
+- **Timeliness:** Data is from around 2013. If healthcare costs rise (medical inflation), the model needs retraining
 
 ### 4. Quantity and Quality of Data
 
+- **Source:** Kaggle Medical Cost Personal Dataset (originally from "Machine Learning with R" by Brett Lantz)
 - **Size:** 1,338 rows by 7 columns
 - **Missing values:** 0 (100% clean data)
-- **Balance:** 79.5% non-smokers / 20.5% smokers — natural distribution
-- **Distribution:** Target variable `charges` is right-skewed — most values between 1,000 and 20,000 with a long tail extending beyond 60,000
+- **Balance:** 79.5% non-smokers / 20.5% smokers - natural distribution
+- **Distribution:** Target variable `charges` is right-skewed - most values between 1,000 and 20,000 with a long tail extending beyond 60,000
 - **Outliers:** Smokers with high BMI are naturally extreme points, not errors
 
 ### 5. Engineered Features
@@ -68,12 +69,12 @@ From Gradient Boosting feature importance:
 
 | Rank | Feature | Importance |
 |---|---|---|
-| 1 | **smoker** | 77.3% |
-| 2 | bmi | 13.8% |
-| 3 | age | 8.4% |
-| 4 | children | 0.4% |
-| 5 | region | ~0.1% |
-| 6 | sex | ~0.02% |
+| 1 | **smoker** | ~62% |
+| 2 | bmi | ~19% |
+| 3 | age | ~14% |
+| 4 | children | ~2% |
+| 5 | region | ~2% |
+| 6 | sex | ~1% |
 
 **Interpretation:** Smoking is the dominant factor. BMI and age are secondary but important. Sex and region have negligible impact.
 
@@ -86,7 +87,7 @@ From Gradient Boosting feature importance:
 - **Example:**
   ```
   Input: {age: 35, sex: male, bmi: 28.5, children: 2, smoker: no, region: southeast}
-  Output: $11,729.58 -> Company offer: $13,489.02 (with 15% margin)
+  Output: $8,400 -> Company offer: $9,660 (with 15% margin)
   ```
 
 ### 8. Model Metrics
@@ -95,19 +96,19 @@ Three models evaluated on a 20% test set (268 records):
 
 | Model | MAE ($) | RMSE ($) | R-squared |
 |---|---|---|---|
-| Linear Regression | 3,247.65 | 4,280.36 | 0.871 |
-| Random Forest | 2,031.26 | 2,590.71 | 0.953 |
-| **Gradient Boosting** | **2,000.37** | **2,521.53** | **0.955** |
+| Linear Regression | 4,181 | 5,796 | 0.784 |
+| Random Forest | 2,564 | 4,594 | 0.864 |
+| **Gradient Boosting** | **2,492** | **4,432** | **0.873** |
 
 **Gradient Boosting** is the winner:
-- **MAE around $2,000** means the model is off by about $2,000 on average
-- **R-squared of 0.955** means the model explains 95.5% of the variance in charges
+- **MAE around $2,492** means the model is off by about $2,500 on average
+- **R-squared of 0.873** means the model explains 87.3% of the variance in charges
 
 ### 9. Success / Failure Criteria
 
 **Success criteria (all met):**
-- R-squared above 0.85: achieved (0.955)
-- MAE below $3,000: achieved ($2,000)
+- R-squared above 0.85: achieved (0.873)
+- MAE below $3,000: achieved ($2,492)
 - Prediction in under 1 second: achieved (milliseconds)
 - No missing values in production: achieved
 
@@ -122,8 +123,7 @@ Three models evaluated on a 20% test set (268 records):
 
 ```
 insurance-charges-regressor/
-├── insurance.csv              # Dataset
-├── generate_data.py           # Data generation script (if needed)
+├── insurance.csv              # Dataset (from Kaggle)
 ├── train.py                   # scikit-learn training script
 ├── train_autogluon.py         # AutoGluon training script (optional)
 ├── Insurance_Project.ipynb    # Complete Jupyter notebook
@@ -148,15 +148,8 @@ pip install -r requirements.txt
 
 ### 2. Train the Model
 
-**Option A: scikit-learn (fast, included)**
 ```bash
 python train.py
-```
-
-**Option B: AutoGluon (recommended, better results)**
-```bash
-pip install autogluon.tabular
-python train_autogluon.py
 ```
 
 ### 3. Use the Model in Python
@@ -184,30 +177,15 @@ uvicorn app:app --reload
 
 Then open `http://127.0.0.1:8000/docs` to test the API.
 
-**Example curl request:**
-```bash
-curl -X POST http://127.0.0.1:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"age": 35, "sex": "male", "bmi": 28.5, "children": 2, "smoker": "no", "region": "southeast"}'
-```
-
-**Response:**
-```json
-{
-  "predicted_charges_usd": 11729.58,
-  "input": {...}
-}
-```
-
 ---
 
 ## Summary
 
-- Gradient Boosting model with R-squared of 0.955 and MAE of $2,000
-- Smoking is the most important factor (77% of predictive power)
+- Gradient Boosting model with R-squared of 0.873 and MAE of $2,492
+- Smoking is the most important factor (62% of predictive power)
 - Model deployed via FastAPI for production use
 - Future improvements: add interaction features or use AutoGluon
 
 ---
 
-**Bootcamp:** Applied AI Bootcamp — Week 3 ML Project
+**Bootcamp:** Applied AI Bootcamp - Week 3 ML Project
